@@ -40,7 +40,9 @@ passion = st.selectbox("Passion", ["Coding", "Documentation & Research", "Presen
 # Button to recommend role
 if st.button("Recommend Lead Role"):
     recommended_role = recommend_role(project_management, public_speaking, ppt_development, database_management, coding, deployment, passion)
-    st.write(f"Recommended Role: {recommended_role}")
+    # st.write(f"Recommended Role: {recommended_role}")
+    st.markdown(f"### Recommended Role: {recommended_role}")
+
     # Save user input to CSV
     user_data = {
         "Name": name,
