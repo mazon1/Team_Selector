@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import os
 
 # Save user input to CSV function
 def save_to_csv(data, filename="user_data.csv"):
