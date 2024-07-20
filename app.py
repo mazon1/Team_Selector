@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
-import os
 
-# Predefined rules for recommending the Delivery Accountability role
+# Function to recommend a role based on skill levels
 def recommend_role(skills):
     roles = {
         "Coding": ["Advanced", "Expert"],
@@ -13,49 +12,43 @@ def recommend_role(skills):
     for role, levels in roles.items():
         if skills.get(role, "") in levels:
             return role
-    return "No specific role recommended"
-
-def save_input_to_csv(skills, filename="user_skills.csv"):
-    # Check if the file exists
-    file_exists = os.path.isfile(filename)
     
-    # Create a DataFrame from the skills dictionary
-    df = pd.DataFrame([skills])
+    # If no exact match is found, determine the closest match
+    closest_role = None
+    highest_level = 0
     
-    # Append the data to the CSV file
-    df.to_csv(filename, mode='a', index=False, header=not file_exists)
+    levels_map = {"Novice": 1, "Advanced Beginner": 2, "Competent": 3, "Proficient": 4, "Expert": 5}
+    
+    for role, levels in roles.items():
+        user_level = levels_map.get(skills.get(role, ""), 0)
+        if user_level > highest_level:
+            highest_level = user_level
+            closest_role = role
+    
+    return skills.get("Passion", "Coding")  # Default to "Passion" if no roles match
 
-st.title("Team Selection App")
+# Initialize the Streamlit app
+st.title("Team Role Recommendation App")
 
-# Input form for user skills
-st.sidebar.header("Enter Your Skills")
-project_management = st.sidebar.selectbox("Project Management:", ["Novice", "Competent", "Proficient", "Advanced", "Expert"])
-public_speaking = st.sidebar.selectbox("Public Speaking:", ["Novice", "Competent", "Proficient", "Advanced", "Expert"])
-ppt_story = st.sidebar.selectbox("PPT/Story Development:", ["Novice", "Competent", "Proficient", "Advanced", "Expert"])
-database_management = st.sidebar.selectbox("Database Management:", ["Novice", "Competent", "Proficient", "Advanced", "Expert"])
-coding = st.sidebar.selectbox("Coding:", ["Novice", "Competent", "Proficient", "Advanced", "Expert"])
-deployment = st.sidebar.selectbox("Deployment:", ["Novice", "Competent", "Proficient", "Advanced", "Expert"])
-passion = st.sidebar.selectbox("Passion:", ["Project Management", "Coding", "Documentation & Research", "Presentation & Communication"])
-
-skills = {
-    "Project Management": project_management,
-    "Public Speaking": public_speaking,
-    "PPT/Story Development": ppt_story,
-    "Database Management": database_management,
-    "Coding": coding,
-    "Deployment": deployment,
-    "Passion": passion
+# Create input fields for the user to enter their skill levels
+user_data = {
+    "Name": st.text_input("Enter your name:"),
+    "Project Management": st.selectbox("Project Management skill level:", ["Novice", "Advanced Beginner", "Competent", "Proficient", "Expert"]),
+    "Public Speaking": st.selectbox("Public Speaking skill level:", ["Novice", "Advanced Beginner", "Competent", "Proficient", "Expert"]),
+    "PPT/Story Development": st.selectbox("PPT/Story Development skill level:", ["Novice", "Advanced Beginner", "Competent", "Proficient", "Expert"]),
+    "Database Management": st.selectbox("Database Management skill level:", ["Novice", "Advanced Beginner", "Competent", "Proficient", "Expert"]),
+    "Coding": st.selectbox("Coding skill level:", ["Novice", "Advanced Beginner", "Competent", "Proficient", "Expert"]),
+    "Deployment": st.selectbox("Deployment skill level:", ["Novice", "Advanced Beginner", "Competent", "Proficient", "Expert"]),
+    "Passion": st.text_input("What are you passionate about?")
 }
 
-# Recommend role based on the entered skills
-recommendation = recommend_role(skills)
-skills["Recommended Role"] = recommendation
+# Recommend a role based on the entered skill levels
+recommended_role = recommend_role(user_data)
+st.write(f"Recommended Role for Delivery Accountability: {recommended_role}")
 
-# Save user input to CSV
-save_input_to_csv(skills)
-
-st.write(f"### Your Skills:")
-for skill, level in skills.items():
-    st.write(f"- **{skill}:** {level}")
-
-st.write(f"### Recommended Delivery Accountability role: {recommendation}")
+# Save user input and recommendation to a CSV file
+if st.button("Save"):
+    df = pd.DataFrame([user_data])
+    df["Recommended Role"] = recommended_role
+    df.to_csv("user_data.csv", mode="a", header=False, index=False)
+    st.success("Data saved successfully!")
