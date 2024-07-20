@@ -1,57 +1,55 @@
 import streamlit as st
 import pandas as pd
 
-# Function to recommend the role based on user input
-def recommend_role(data):
-    role_recommendations = {
-        "Coding": data.get("Coding", "Novice"),
-        "Documentation & Research": data.get("Documentation & Research", "Novice"),
-        "Presentation": data.get("PPT/Story Development", "Novice"),
-        "Communication": data.get("Public Speaking", "Novice"),
+# Save user input to CSV function
+def save_to_csv(data, filename="user_data.csv"):
+    df = pd.DataFrame([data])
+    if not os.path.isfile(filename):
+        df.to_csv(filename, index=False)
+    else:
+        df.to_csv(filename, mode='a', header=False, index=False)
+
+# Function to recommend role based on skills
+def recommend_role(project_management, public_speaking, ppt_development, database_management, coding, deployment, passion):
+    skill_map = {
+        "Coding": coding,
+        "Documentation & Research": ppt_development,
+        "Presentation": public_speaking,
+        "Communication": public_speaking
     }
+    role = max(skill_map, key=skill_map.get)
+    if skill_map[role] == "Novice":
+        role = passion  # Default to the passion if no high skill is found
+    return role
 
-    lead_role = max(role_recommendations, key=role_recommendations.get)
-    return lead_role
-
-# Function to save user input to CSV file
-def save_input_to_csv(input_data, filename="user_inputs.csv"):
-    df = pd.DataFrame([input_data])
-    try:
-        existing_df = pd.read_csv(filename)
-        df = pd.concat([existing_df, df], ignore_index=True)
-    except FileNotFoundError:
-        pass
-    df.to_csv(filename, index=False)
-
-# Streamlit UI
+# App Layout
 st.title("Team Selection App")
+st.image("teamselectorapp.jpg", width=200)
 
-# Input fields
+# User input
 name = st.text_input("Name")
-project_management = st.selectbox("Project Management", ["Novice", "Advanced Beginner", "Competent", "Proficient", "Expert"])
-public_speaking = st.selectbox("Public Speaking", ["Novice", "Advanced Beginner", "Competent", "Proficient", "Expert"])
-ppt_story_dev = st.selectbox("PPT/Story Development", ["Novice", "Advanced Beginner", "Competent", "Proficient", "Expert"])
-database_management = st.selectbox("Database Management", ["Novice", "Advanced Beginner", "Competent", "Proficient", "Expert"])
-coding = st.selectbox("Coding", ["Novice", "Advanced Beginner", "Competent", "Proficient", "Expert"])
-deployment = st.selectbox("Deployment", ["Novice", "Advanced Beginner", "Competent", "Proficient", "Expert"])
+project_management = st.selectbox("Project Management", ["Novice", "Competent", "Proficient", "Expert"])
+public_speaking = st.selectbox("Public Speaking", ["Novice", "Competent", "Proficient", "Expert"])
+ppt_development = st.selectbox("PPT/Story Development", ["Novice", "Competent", "Proficient", "Expert"])
+database_management = st.selectbox("Database Management", ["Novice", "Competent", "Proficient", "Expert"])
+coding = st.selectbox("Coding", ["Novice", "Competent", "Proficient", "Expert"])
+deployment = st.selectbox("Deployment", ["Novice", "Competent", "Proficient", "Expert"])
 passion = st.selectbox("Passion", ["Coding", "Documentation & Research", "Presentation", "Communication"])
 
-# Button to recommend lead role
+# Button to recommend role
 if st.button("Recommend Lead Role"):
+    recommended_role = recommend_role(project_management, public_speaking, ppt_development, database_management, coding, deployment, passion)
+    st.write(f"Recommended Role: {recommended_role}")
+    # Save user input to CSV
     user_data = {
         "Name": name,
         "Project Management": project_management,
         "Public Speaking": public_speaking,
-        "PPT/Story Development": ppt_story_dev,
+        "PPT/Story Development": ppt_development,
         "Database Management": database_management,
         "Coding": coding,
         "Deployment": deployment,
-        "Passion": passion
+        "Passion": passion,
+        "Recommended Role": recommended_role
     }
-
-    recommended_role = recommend_role(user_data)
-    st.markdown(f"### Recommended Role: {recommended_role}")
-
-    # Save user input to CSV
-    save_input_to_csv(user_data)
-
+    save_to_csv(user_data)
